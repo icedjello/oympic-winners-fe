@@ -14,6 +14,8 @@ import {ServerSideRowModelModule} from "@ag-grid-enterprise/server-side-row-mode
 import {MenuModule} from "@ag-grid-enterprise/menu";
 import {ColumnsToolPanelModule} from "@ag-grid-enterprise/column-tool-panel";
 import {SetFilterModule} from "@ag-grid-enterprise/set-filter";
+import {DialogElementsExampleDialog} from "./create.popup";
+import {MatDialog} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-root',
@@ -23,8 +25,8 @@ import {SetFilterModule} from "@ag-grid-enterprise/set-filter";
   }`],
   template: `
     <div>
-      <button (click)="onCreate()">create</button>
-      <button (click)="onDelete()">delete</button>
+      <button mat-button (click)="openDialog()">Create</button>
+      <button mat-button (click)="onDelete()">Delete</button>
     </div>
     <ag-grid-angular
       #agGrid
@@ -79,7 +81,7 @@ export class AppComponent {
   private gridApi?: GridApi;
   private columnApi?: ColumnApi;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, public dialog: MatDialog) {
     this.rowData = [];
     this.defaultColDef = {flex: 1, sortable: true, enableRowGroup: true};
     this.columnTypes = {
@@ -145,6 +147,11 @@ export class AppComponent {
     ];
   }
 
+  public openDialog() {
+    this.dialog.open(DialogElementsExampleDialog);
+  }
+
+
   public numberValueParser(params: ValueParserParams): number {
     return Number(params.newValue);
   }
@@ -204,18 +211,6 @@ export class AppComponent {
         console.log(resMsg)
       })
   }
-
-  public onCreate(): void {
-    console.log('Create Clicked.')
-  }
-
-  // private createServerSideData(athlete: string, age: number, country: string, gold: number, silver: number, bronze: number) {
-  //   const body = {athlete, age, country, gold, silver, bronze}
-  //   this.http.post('http://localhost:3000/create', body)
-  //     .subscribe((resMsg) => {
-  //       console.log(resMsg)
-  //     })
-  // }
 
   public onCellEditingStopped(params: CellEditingStoppedEvent) {
     this.updateServerSideData(params.data.id, params.data);
