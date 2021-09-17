@@ -81,7 +81,7 @@ export class AppComponent {
   private gridApi?: GridApi;
   private columnApi?: ColumnApi;
 
-  constructor(private http: HttpClient, public dialog: MatDialog) {
+  constructor(private http: HttpClient, private dialog: MatDialog) {
     this.rowData = [];
     this.defaultColDef = {flex: 1, sortable: true, enableRowGroup: true};
     this.columnTypes = {
@@ -147,10 +147,34 @@ export class AppComponent {
     ];
   }
 
-  public openDialog() {
-    this.dialog.open(DialogElementsExampleDialog);
+  private isGroupingActive: () => boolean = () => !(this.columnApi?.getRowGroupColumns().length === 0);
+
+  private createServerSideData(newRowData: {}) {
+    this.http.post('http://localhost:3000/create', newRowData)
+      .subscribe((resMsg) => {
+          console.log(resMsg)
+        }
+      )
+    if (this.isGroupingActive()) {
+      const result: ServerSideTransactionResult = this.gridApi?.applyServerSideTransaction({
+          add: [newRowData],
+          // route: this.getRoute(node)
+        },
+      ) as ServerSideTransactionResult
+      console.log(result)
+    } else {
+      this.gridApi?.refreshServerSideStore(
+        {purge: false}
+      )
+    }
   }
 
+  public openDialog() {
+    let dialogRef = this.dialog.open(DialogElementsExampleDialog);
+    dialogRef.afterClosed().subscribe(newRowData => {
+      this.createServerSideData(newRowData)
+    })
+  }
 
   public numberValueParser(params: ValueParserParams): number {
     return Number(params.newValue);
@@ -181,16 +205,9 @@ export class AppComponent {
       const gridApi = this.gridApi;
       const node: RowNode = gridApi.getSelectedNodes()[0]
       const nodeId = node.data.id;
-      const notGrouping = this.columnApi?.getRowGroupColumns().length === 0;
 
-      if (notGrouping) {
-        this.deleteServerSideData(nodeId);
-        gridApi.refreshServerSideStore({
-          route: this.getRoute(node),
-          purge: false
-        })
-        this.getRoute(node)
-      } else { // we have grouping, thus need a route...
+      if (this.isGroupingActive()) {
+        // we have grouping, thus need a route...
         this.deleteServerSideData(nodeId);
         const result: ServerSideTransactionResult = gridApi.applyServerSideTransaction({
             remove: [node.data],
@@ -199,7 +216,12 @@ export class AppComponent {
         ) as ServerSideTransactionResult
         console.log(result)
         // gridApi.refreshServerSideStore({route: route, purge: true});
-
+      } else {
+        this.deleteServerSideData(nodeId);
+        gridApi.refreshServerSideStore({
+          // route: this.getRoute(node),
+          purge: false
+        })
       }
     }
   }

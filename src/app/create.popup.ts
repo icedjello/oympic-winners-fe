@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {HttpClient} from "@angular/common/http";
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from "@angular/material/dialog";
 
 
 @Component({
@@ -49,7 +50,11 @@ import {HttpClient} from "@angular/common/http";
 export class DialogElementsExampleDialog {
   options: FormGroup;
 
-  constructor(fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    fb: FormBuilder,
+    private http: HttpClient,
+    private dialogRef: MatDialogRef<DialogElementsExampleDialog>
+) {
     this.options = fb.group({
       athlete: new FormControl('', [Validators.required]),
       age: new FormControl('', [Validators.required]),
@@ -62,9 +67,6 @@ export class DialogElementsExampleDialog {
   }
 
   public onSubmit() {
-    this.http.post('http://localhost:3000/create', this.options.value)
-      .subscribe((resMsg) => {
-        console.log(resMsg)
-      })
+    this.dialogRef.close(this.options.value);
   }
 }
