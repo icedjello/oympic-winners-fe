@@ -12,7 +12,7 @@ import {
   ServerSideTransactionResult,
   SetFilterValuesFuncParams,
   ValueParserParams,
-  ColumnApi
+  ColumnApi, ServerSideStoreParams
 } from "@ag-grid-community/core";
 import {ServerSideRowModelModule} from "@ag-grid-enterprise/server-side-row-model";
 import {MenuModule} from "@ag-grid-enterprise/menu";
@@ -64,19 +64,17 @@ export class AppComponent {
   public readonly autoGroupColumnDef: ColDef = {flex: 2, filter: false, sortable: false}
   public readonly columnTypes: {};
   public readonly rowSelection = 'single'
-  public getServerSideStoreParams: (params: GetServerSideStoreParamsParams) => void = params => {
+  public getServerSideStoreParams: (params: GetServerSideStoreParamsParams) => ServerSideStoreParams = params => {
     const groupingActive = !(params.rowGroupColumns.length === 0);
     if (groupingActive) {
       return {
         storeType: 'full',
-        cacheBlockSize: 100,
-        maxBlocksInCache: 5,
       };
     } else {
       return {
         storeType: 'partial',
         cacheBlockSize: 20,
-        maxBlocksInCache: -1,
+        maxBlocksInCache: 3,
       };
     }
   }
@@ -105,6 +103,7 @@ export class AppComponent {
         filter: 'agSetColumnFilter',
         filterParams: {
           buttons: ['apply', 'reset'],
+          closeOnApply: true,
           refreshValuesOnOpen: true,
           values: this.getSetFilterValues.bind(this)
         }
@@ -208,7 +207,6 @@ export class AppComponent {
         console.log(resMsg)
       })
   }
-
 
   public openDialog(): void {
     let dialogRef = this.dialog.open(DialogElementsExampleDialog);
